@@ -3,6 +3,3 @@
 
 mod alloc;
 pub use alloc::*;
-
-mod vec;
-pub use vec::*;
