@@ -1,7 +1,7 @@
 use hardcore::*;
 
 fn main() {
-    print_allocated();
+    print_allocated_after_alloc_was_dropped();
     visualize_layout();
 }
 
@@ -18,7 +18,7 @@ pub fn visualize_layout() {
     println!("heap: {:?}", heap);
 }
 
-fn print_allocated() {
+fn print_allocated_after_alloc_was_dropped() {
     let mut heap: [u8; 32] = Default::default();
     let mut alloc = Alloc::new(&mut heap);
 

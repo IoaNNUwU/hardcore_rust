@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+const-array-init = "1.0.0"
+diol = "0.6.0"
+
+[[bench]]
+name = "prime_tables_bench"
+harness = false
+

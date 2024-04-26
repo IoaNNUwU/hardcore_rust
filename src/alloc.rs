@@ -74,8 +74,30 @@ impl<'mem> Alloc<'mem> {
                 &mut *almost_item_ptr // *mut T as &mut T
             }
         };
-
         Ok(item_ref)
+    }
+
+    pub fn alloc_array_from_fn<'arr, T>(
+        &mut self, size: usize, mut init_t: impl FnMut(usize) -> T
+    ) 
+            -> AllocResult<&'arr mut [T]>
+    where 'mem: 'arr {
+
+        self.waste_some_mem_to_reach_align::<T>()?;
+
+        if self.remaining_mem.len() < size {
+            return Err(OutOfMemory);
+        }
+
+        let arr_ptr = self.remaining_mem as *mut [u8] as *mut [T];
+
+        for i in 0..size {
+            let _ = unsafe { 
+                self.alloc_aligned(init_t(i)).unwrap_unchecked() 
+            };
+        };
+
+        Ok(&mut unsafe { &mut *arr_ptr }[0..size])
     }
 }
 
@@ -138,6 +160,27 @@ mod test {
             [
                 1, 9, 2, 0,
                 9, 9, 9, 9,
+                9, 9, 9, 9,
+                9, 9, 9, 9,
+            ]
+        );
+    }
+
+    #[test]
+    fn works_with_arrays() {
+
+        let mut pseudo_heap: [u8; 16] = core::array::from_fn(|_| 9);
+
+        let mut alloc = Alloc::new(&mut pseudo_heap);
+
+        let _ = alloc.alloc::<u8>(1).unwrap();
+
+        let _  = alloc.alloc_array_from_fn::<u16>(3, |_| 2).unwrap();
+
+        assert_eq!(pseudo_heap,
+            [
+                1, 9, 2, 0,
+                2, 0, 2, 0,
                 9, 9, 9, 9,
                 9, 9, 9, 9,
             ]
